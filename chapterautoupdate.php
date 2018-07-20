@@ -40,7 +40,7 @@ function chapterautoupdate_civicrm_install() {
     'label' => ts('Chapter'),
     'custom_group_id' => 'chapter_region',
     'data_type' => "String",
-    'html_type' => "Text",
+    'html_type' => "Select",
     'is_active' => 1,
     'is_searchable' => 1,
   ));
@@ -48,11 +48,39 @@ function chapterautoupdate_civicrm_install() {
     'label' => ts('Region'),
     'custom_group_id' => 'chapter_region',
     'data_type' => "String",
-    'html_type' => "Text",
+    'html_type' => "Select",
     'is_active' => 1,
     'is_searchable' => 1,
   ));
   _chapterautoupdate_civix_civicrm_install();
+}
+
+/**
+ * Implementation of hook_civicrm_fieldOptions
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_fieldOptions
+ */
+function chapterautoupdate_civicrm_fieldOptions($entity, $field, &$options, $params) {
+  $chapter = civicrm_api3('CustomField', 'getvalue', array(
+    'name' => 'Chapter',
+    'return' => 'id',
+  ));
+  if ($entity == "Contact" && $field == "custom_" . $chapter) {
+    $dao = CRM_Core_DAO::executeQuery("SELECT chapter FROM chapters GROUP BY chapter");
+    while ($dao->fetch()) {
+      $options[$dao->chapter] = $dao->chapter;
+    }
+  }
+  $region = civicrm_api3('CustomField', 'getvalue', array(
+    'name' => 'Region',
+    'return' => 'id',
+  ));
+  if ($entity == "Contact" && $field == "custom_" . $region) {
+    $dao = CRM_Core_DAO::executeQuery("SELECT region FROM chapters GROUP BY region");
+    while ($dao->fetch()) {
+      $options[$dao->region] = $dao->region;
+    }
+  }
 }
 
 /**
@@ -146,7 +174,7 @@ function chapterautoupdate_civicrm_post($op, $objectName, $objectId, &$objectRef
     $sql = "SELECT pcode, region, chapter FROM chapters WHERE pcode = '{$chapterCode}'";
     $dao = CRM_Core_DAO::executeQuery($sql);
     while ($dao->fetch()) {
-      $region = $dao->pcode;
+      $region = $dao->region;
       $chapter = $dao->chapter;
     }
 
@@ -156,6 +184,7 @@ function chapterautoupdate_civicrm_post($op, $objectName, $objectId, &$objectRef
         $chapterId = civicrm_api3('CustomField', 'getvalue', array(
           'name' => 'Chapter',
           'return' => 'id',
+          'custom_group_id' => "chapter_region",
         ));
         civicrm_api3('CustomValue', 'create', array(
           'entity_id' => $objectRef->contact_id,
@@ -164,6 +193,7 @@ function chapterautoupdate_civicrm_post($op, $objectName, $objectId, &$objectRef
         $regionId = civicrm_api3('CustomField', 'getvalue', array(
           'name' => 'Region',
           'return' => 'id',
+          'custom_group_id' => "chapter_region",
         ));
         civicrm_api3('CustomValue', 'create', array(
           'entity_id' => $objectRef->contact_id,
