@@ -63,6 +63,7 @@ function chapterautoupdate_civicrm_install() {
 function chapterautoupdate_civicrm_fieldOptions($entity, $field, &$options, $params) {
   $chapter = civicrm_api3('CustomField', 'getvalue', array(
     'name' => 'Chapter',
+    'custom_group_id' => "chapter_region",
     'return' => 'id',
   ));
   if ($entity == "Contact" && $field == "custom_" . $chapter) {
@@ -73,6 +74,7 @@ function chapterautoupdate_civicrm_fieldOptions($entity, $field, &$options, $par
   }
   $region = civicrm_api3('CustomField', 'getvalue', array(
     'name' => 'Region',
+    'custom_group_id' => "chapter_region",
     'return' => 'id',
   ));
   if ($entity == "Contact" && $field == "custom_" . $region) {
