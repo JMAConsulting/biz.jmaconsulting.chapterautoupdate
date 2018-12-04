@@ -61,7 +61,8 @@ function chapterautoupdate_civicrm_install() {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_fieldOptions
  */
 function chapterautoupdate_civicrm_fieldOptions($entity, $field, &$options, $params) {
-  $chapter = civicrm_api3('CustomField', 'getvalue', array(
+return;
+  /*$chapter = civicrm_api3('CustomField', 'getvalue', array(
     'name' => 'Chapter',
     'custom_group_id' => "chapter_region",
     'return' => 'id',
@@ -71,7 +72,7 @@ function chapterautoupdate_civicrm_fieldOptions($entity, $field, &$options, $par
     while ($dao->fetch()) {
       $options[$dao->chapter] = $dao->chapter;
     }
-  }
+  }*/
   $region = civicrm_api3('CustomField', 'getvalue', array(
     'name' => 'Region',
     'custom_group_id' => "chapter_region",
@@ -180,7 +181,7 @@ function chapterautoupdate_civicrm_post($op, $objectName, $objectId, &$objectRef
       $chapter = $dao->chapter;
     }
 
-    if ($dao->N) {
+    if ($dao->N && $objectRef->contact_id) {
       // Save to custom field for address.
       try {
         $chapterId = civicrm_api3('CustomField', 'getvalue', array(
@@ -192,6 +193,7 @@ function chapterautoupdate_civicrm_post($op, $objectName, $objectId, &$objectRef
           'entity_id' => $objectRef->contact_id,
           'custom_' . $chapterId => $chapter,
         ));
+
         $regionId = civicrm_api3('CustomField', 'getvalue', array(
           'name' => 'Region',
           'return' => 'id',
@@ -215,5 +217,61 @@ function chapterautoupdate_civicrm_post($op, $objectName, $objectId, &$objectRef
         CRM_Core_Session::setStatus(ts("Chapter/Region data not saved."), ts("Warning"), "alert");
       }
     }
+  }
+}
+
+function chapterautoupdate_civicrm_postSave_civicrm_address($objectRef) {
+  if (empty($objectRef->postal_code) || $objectRef->country_id != 1039) {
+      return;
+    }
+
+    $chapterCode = substr($objectRef->postal_code, 0, 3);
+    $sql = "SELECT pcode, region, chapter FROM chapters WHERE pcode = '{$chapterCode}'";
+    $dao = CRM_Core_DAO::executeQuery($sql);
+    while ($dao->fetch()) {
+      $region = $dao->region;
+      $chapter = $dao->chapter;
+    }
+
+    if ($dao->N && $objectRef->contact_id) {
+      // Save to custom field for address.
+      try {
+        $chapterId = civicrm_api3('CustomField', 'getvalue', array(
+          'name' => 'Chapter',
+          'return' => 'id',
+          'custom_group_id' => "chapter_region",
+        ));
+        civicrm_api3('CustomValue', 'create', array(
+          'entity_id' => $objectRef->contact_id,
+          'custom_' . $chapterId => $chapter,
+        ));
+
+        $regionId = civicrm_api3('CustomField', 'getvalue', array(
+          'name' => 'Region',
+          'return' => 'id',
+          'custom_group_id' => "chapter_region",
+        ));
+        civicrm_api3('CustomValue', 'create', array(
+          'entity_id' => $objectRef->contact_id,
+          'custom_' . $regionId => $region,
+        ));
+      }
+      catch (CiviCRM_API3_Exception $e) {
+        $errorMessage = $e->getMessage();
+        $errorCode = $e->getErrorCode();
+        $errorData = $e->getExtraParams();
+        $errors[] = array(
+          'error_message' => $errorMessage,
+          'error_code' => $errorCode,
+          'error_data' => $errorData,
+        );
+        CRM_Core_Error::debug_var("Chapter/Region not saved", $errors);
+        CRM_Core_Session::setStatus(ts("Chapter/Region data not saved."), ts("Warning"), "alert");
+      }
+    }
+}
+
+function chapterautoupdate_civicrm_postProcess($formName, &$form) {
+  if ($formName == "CRM_Contact_Form_Contact") {
   }
 }
