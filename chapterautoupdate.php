@@ -61,8 +61,8 @@ function chapterautoupdate_civicrm_install() {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_fieldOptions
  */
 function chapterautoupdate_civicrm_fieldOptions($entity, $field, &$options, $params) {
-return;
-  /*$chapter = civicrm_api3('CustomField', 'getvalue', array(
+  return;
+  $chapter = civicrm_api3('CustomField', 'getvalue', array(
     'name' => 'Chapter',
     'custom_group_id' => "chapter_region",
     'return' => 'id',
@@ -72,7 +72,7 @@ return;
     while ($dao->fetch()) {
       $options[$dao->chapter] = $dao->chapter;
     }
-  }*/
+  }
   $region = civicrm_api3('CustomField', 'getvalue', array(
     'name' => 'Region',
     'custom_group_id' => "chapter_region",
@@ -225,36 +225,17 @@ function chapterautoupdate_civicrm_postSave_civicrm_address($objectRef) {
       return;
     }
 
-    $chapterCode = substr($objectRef->postal_code, 0, 3);
-    $sql = "SELECT pcode, region, chapter FROM chapters WHERE pcode = '{$chapterCode}'";
-    $dao = CRM_Core_DAO::executeQuery($sql);
-    while ($dao->fetch()) {
-      $region = $dao->region;
-      $chapter = $dao->chapter;
-    }
+  list($chapter, $region) = getCodes($objectRef->postal_code);
 
     if ($dao->N && $objectRef->contact_id) {
       // Save to custom field for address.
       try {
-        $chapterId = civicrm_api3('CustomField', 'getvalue', array(
-          'name' => 'Chapter',
-          'return' => 'id',
-          'custom_group_id' => "chapter_region",
-        ));
-        civicrm_api3('CustomValue', 'create', array(
-          'entity_id' => $objectRef->contact_id,
-          'custom_' . $chapterId => $chapter,
-        ));
-
-        $regionId = civicrm_api3('CustomField', 'getvalue', array(
-          'name' => 'Region',
-          'return' => 'id',
-          'custom_group_id' => "chapter_region",
-        ));
-        civicrm_api3('CustomValue', 'create', array(
-          'entity_id' => $objectRef->contact_id,
-          'custom_' . $regionId => $region,
-        ));
+        $params = [
+          'chapter' => $chapter,
+          'region' => $region,
+          'contact_id' => $objectRef->contact_id,
+        ];
+        setCodes($params);
       }
       catch (CiviCRM_API3_Exception $e) {
         $errorMessage = $e->getMessage();
@@ -273,5 +254,134 @@ function chapterautoupdate_civicrm_postSave_civicrm_address($objectRef) {
 
 function chapterautoupdate_civicrm_postProcess($formName, &$form) {
   if ($formName == "CRM_Contact_Form_Contact") {
+    list($chapterId, $regionId) = getIds();
+    if (!empty($form->_submitValues['custom_' . $chapterId . '_1']) || !empty($form->_submitValues['custom_' . $regionId . '_1'])) {
+      $submittedChapters = $form->_values['custom_' . $chapterId . '_1'];
+      $submittedRegions = $form->_values['custom_' . $regionId . '_1'];
+    }
+    if (!empty($form->_values['address'])) {
+      foreach ($form->_values['address'] as $key => $value) {
+        if (!$value['is_primary']) {
+          continue;
+        }
+        if (!empty($value['postal_code'])) {
+          list($chapter, $region) = getCodes($value['postal_code']);
+          $params = [
+            'contact_id' => $form->_contactId,
+          ];
+          if (empty($submittedChapters)) {
+            $params['chapter'] = $chapter;
+          }
+          else {
+            $params['chapter'] = array_push($chapter, $submittedChapters);
+          }
+          if (empty($submittedRegions)) {
+            $params['region'] = $region;
+          }
+          else {
+            $params['region'] = array_push($region, $submittedregions);
+          }
+
+          setCodes($params);
+        }
+      }
+    }
+    if (!empty($form->_submitValues['address'])) {
+      foreach ($form->_submitValues['address'] as $key => $value) {
+        if (!$value['is_primary']) {
+          continue;
+        }
+        if (!empty($value['postal_code'])) {
+          list($chapter, $region) = getCodes($value['postal_code']);
+          $params = [
+            'contact_id' => $form->_contactId,
+          ];
+          if (empty($submittedChapters)) {
+            $params['chapter'] = $chapter;
+          }
+          else {
+            $params['chapter'] = array_push($chapter, $submittedChapters);
+          }
+          if (empty($submittedRegions)) {
+            $params['region'] = $region;
+          }
+          else {
+            $params['region'] = array_push($region, $submittedregions);
+          }
+          setCodes($params);
+        }
+      }
+    }
+    else {
+      $params = [
+        'contact_id' => $form->_contactId,
+      ];
+      if (empty($submittedChapters)) {
+        $params['chapter'] = 1;
+      }
+      if (empty($submittedRegions)) {
+        $params['region'] = 1;
+      }
+      deleteCodes($params);
+    }
+  }
+}
+
+function getIds() {
+  $chapterId = civicrm_api3('CustomField', 'getvalue', array(
+    'name' => 'Chapter',
+    'return' => 'id',
+    'custom_group_id' => "chapter_region",
+  ));
+
+  $regionId = civicrm_api3('CustomField', 'getvalue', array(
+    'name' => 'Region',
+    'return' => 'id',
+    'custom_group_id' => "chapter_region",
+  ));
+  return [$chapterId, $regionId];
+}
+
+function getCodes($postalCode) {
+  $chapterCode = substr($postalCode, 0, 3);
+  $sql = "SELECT pcode, region, chapter FROM chapters WHERE pcode = '{$chapterCode}'";
+  $dao = CRM_Core_DAO::executeQuery($sql);
+  while ($dao->fetch()) {
+    $region = $dao->region;
+    $chapter = $dao->chapter;
+  }
+  return [$chapter, $region];
+}
+
+function setCodes($params, $existingCodes = []) {
+  list($chapterId, $regionId) = getIds();
+
+  if (!empty($params['chapter'])) {
+    civicrm_api3('CustomValue', 'create', array(
+      'entity_id' => $params['contact_id'],
+      'custom_' . $chapterId => $params['chapter'],
+    ));
+  }
+  if (!empty($params['region'])) {
+    civicrm_api3('CustomValue', 'create', array(
+      'entity_id' => $params['contact_id'],
+      'custom_' . $regionId => $params['region'],
+    ));
+  }
+}
+
+function deleteCodes($params) {
+  list($chapterId, $regionId) = getIds();
+  if ($params['chapter']) {
+    civicrm_api3('CustomValue', 'delete', array(
+      'entity_id' => $params['contact_id'],
+      'custom_' . $chapterId => $params['chapter'],
+    ));
+  }
+  if ($params['region']) {
+    civicrm_api3('CustomValue', 'delete', array(
+      'entity_id' => $params['contact_id'],
+      'custom_' . $regionId => $params['region'],
+    ));
   }
 }
