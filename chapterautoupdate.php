@@ -168,12 +168,12 @@ function chapterautoupdate_civicrm_alterSettingsFolders(&$metaDataFolders = NULL
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_post
  */
 function chapterautoupdate_civicrm_post($op, $objectName, $objectId, &$objectRef) {
-  if ($objectName == "Address") {
+  if ($objectName == "Address" && $op == 'create') {
     if (empty($objectRef->postal_code) || $objectRef->country_id != 1039) {
       return;
     }
 
-    $chapterCode = substr($objectRef->postal_code, 0, 3);
+    $chapterCode = strtoupper(substr($objectRef->postal_code, 0, 3));
     $sql = "SELECT pcode, region, chapter FROM chapters WHERE pcode = '{$chapterCode}'";
     $dao = CRM_Core_DAO::executeQuery($sql);
     while ($dao->fetch()) {
@@ -191,7 +191,7 @@ function chapterautoupdate_civicrm_post($op, $objectName, $objectId, &$objectRef
         ));
         civicrm_api3('CustomValue', 'create', array(
           'entity_id' => $objectRef->contact_id,
-          'custom_' . $chapterId => $chapter,
+          'custom_' . $chapterId => CRM_Core_DAO::VALUE_SEPARATOR . $chapter . CRM_Core_DAO::VALUE_SEPARATOR,
         ));
 
         $regionId = civicrm_api3('CustomField', 'getvalue', array(
@@ -201,7 +201,7 @@ function chapterautoupdate_civicrm_post($op, $objectName, $objectId, &$objectRef
         ));
         civicrm_api3('CustomValue', 'create', array(
           'entity_id' => $objectRef->contact_id,
-          'custom_' . $regionId => $region,
+          'custom_' . $regionId => CRM_Core_DAO::VALUE_SEPARATOR . $region . CRM_Core_DAO::VALUE_SEPARATOR,
         ));
       }
       catch (CiviCRM_API3_Exception $e) {
@@ -220,7 +220,7 @@ function chapterautoupdate_civicrm_post($op, $objectName, $objectId, &$objectRef
   }
 }
 
-function chapterautoupdate_civicrm_postSave_civicrm_address($objectRef) {
+/* function chapterautoupdate_civicrm_postSave_civicrm_address($objectRef) {
   if (empty($objectRef->postal_code) || $objectRef->country_id != 1039) {
       return;
     }
@@ -250,7 +250,7 @@ function chapterautoupdate_civicrm_postSave_civicrm_address($objectRef) {
         CRM_Core_Session::setStatus(ts("Chapter/Region data not saved."), ts("Warning"), "alert");
       }
     }
-}
+} */
 
 function chapterautoupdate_civicrm_postProcess($formName, &$form) {
   if ($formName == "CRM_Contact_Form_Contact") {
