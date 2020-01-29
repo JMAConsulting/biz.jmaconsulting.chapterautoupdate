@@ -174,8 +174,8 @@ function chapterautoupdate_civicrm_post($op, $objectName, $objectId, &$objectRef
     }
 
     $chapterCode = strtoupper(substr($objectRef->postal_code, 0, 3));
-    $sql = "SELECT pcode, region, chapter FROM chapters WHERE pcode = '{$chapterCode}'";
-    $dao = CRM_Core_DAO::executeQuery($sql);
+    $sql = "SELECT pcode, region, chapter FROM chapters WHERE pcode = %1";
+    $dao = CRM_Core_DAO::executeQuery($sql, [1 => [$chapterCode, 'String']]);
     while ($dao->fetch()) {
       $region = $dao->region;
       $chapter = $dao->chapter;
