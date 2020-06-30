@@ -64,8 +64,8 @@ function civicrm_api3_ch_auto_update_get($params) {
     CRM_Core_Error::executeQuery("UPDATE civicrm_value_chapters_and__18 c
       INNER JOIN civicrm_address a ON a.contact_id = c.entity_id
       INNER JOIN chapters_lookup l ON l.pcode = SUBSTRING(a.postal_code, 1, 3)
-      SET c.chapter_60 = l.chapter
-      WHERE c.chapter_60 IS NULL
+      SET c.chapter_60 = " . CRM_Core_DAO::VALUE_SEPARATOR . "l.chapter" . CRM_Core_DAO::VALUE_SEPARATOR .
+      "WHERE c.chapter_60 IS NULL
     ");
   }
   return _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params, FALSE, ChAutoUpdate);
