@@ -2,18 +2,6 @@
 use CRM_CU_ExtensionUtil as E;
 
 /**
- * ChAutoUpdate.UpdateFromLookup API specification (optional)
- * This is used for documentation and validation.
- *
- * @param array $spec description of fields supported by this API call
- *
- * @see https://docs.civicrm.org/dev/en/latest/framework/api-architecture/
- */
-function _civicrm_api3_ch_auto_update_UpdateFromLookup_spec(&$spec) {
-  $spec['magicword']['api.required'] = 1;
-}
-
-/**
  * ChAutoUpdate.UpdateFromLookup API
  *
  * @param array $params
@@ -25,13 +13,11 @@ function _civicrm_api3_ch_auto_update_UpdateFromLookup_spec(&$spec) {
  *
  * @throws API_Exception
  */
-function civicrm_api3_ch_auto_update_UpdateFromLookup($params) {
+function civicrm_api3_job_update_from_lookup($params) {
     civicrm_api3('ChAutoUpdate', 'get', [
       'sequential' => 1,
+      'service_region' => $params['service_region'],
+      'chapter' => $params['chapter'],
     ]);
-    return civicrm_api3_create_success($returnValues, $params, 'ChAutoUpdate', 'UpdateFromLookup');
-  }
-  else {
-    throw new API_Exception(/*error_message*/ 'Everyone knows that the magicword is "sesame"', /*error_code*/ 'magicword_incorrect');
-  }
+    return TRUE;
 }

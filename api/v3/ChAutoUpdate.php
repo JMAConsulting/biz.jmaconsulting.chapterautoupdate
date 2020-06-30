@@ -53,7 +53,7 @@ function civicrm_api3_ch_auto_update_delete($params) {
  */
 function civicrm_api3_ch_auto_update_get($params) {
   if (!empty($params['service_region'])) {
-    CRM_Core_Error::executeQuery("UPDATE civicrm_value_chapters_and__18 c
+    CRM_Core_DAO::executeQuery("UPDATE civicrm_value_chapters_and__18 c
       INNER JOIN civicrm_address a ON a.contact_id = c.entity_id
       INNER JOIN chapters_lookup l ON l.pcode = SUBSTRING(a.postal_code, 1, 3)
       SET c.service_region_776 = l.service_region
@@ -61,7 +61,7 @@ function civicrm_api3_ch_auto_update_get($params) {
     ");
   }
   if (!empty($params['chapter'])) {
-    CRM_Core_Error::executeQuery("UPDATE civicrm_value_chapters_and__18 c
+    CRM_Core_DAO::executeQuery("UPDATE civicrm_value_chapters_and__18 c
       INNER JOIN civicrm_address a ON a.contact_id = c.entity_id
       INNER JOIN chapters_lookup l ON l.pcode = SUBSTRING(a.postal_code, 1, 3)
       SET c.chapter_60 = " . CRM_Core_DAO::VALUE_SEPARATOR . "l.chapter" . CRM_Core_DAO::VALUE_SEPARATOR .
