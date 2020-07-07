@@ -204,7 +204,7 @@ function chapterautoupdate_civicrm_post($op, $objectName, $objectId, &$objectRef
         ));
 
         $regionId = civicrm_api3('CustomField', 'getvalue', array(
-          'name' => 'Region',
+          'name' => 'Service Region',
           'return' => 'id',
           'custom_group_id' => "chapter_region",
         ));
@@ -222,8 +222,8 @@ function chapterautoupdate_civicrm_post($op, $objectName, $objectId, &$objectRef
           'error_code' => $errorCode,
           'error_data' => $errorData,
         );
-        CRM_Core_Error::debug_var("Chapter/Region not saved", $errors);
-        CRM_Core_Session::setStatus(ts("Chapter/Region data not saved."), ts("Warning"), "alert");
+        CRM_Core_Error::debug_var("Chapter/Service Region not saved", $errors);
+        CRM_Core_Session::setStatus(ts("Chapter/Service Region data not saved."), ts("Warning"), "alert");
       }
     }
   }
@@ -372,7 +372,7 @@ function getIds() {
   ));
 
   $regionId = civicrm_api3('CustomField', 'getvalue', array(
-    'name' => 'Region',
+    'name' => 'Service Region',
     'return' => 'id',
     'custom_group_id' => "chapter_region",
   ));

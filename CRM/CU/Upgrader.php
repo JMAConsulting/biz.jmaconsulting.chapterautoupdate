@@ -67,6 +67,16 @@ class CRM_CU_Upgrader extends CRM_CU_Upgrader_Base {
     return TRUE;
   }
 
+  public function upgrade_1100() {
+    $this->ctx->log->info('Applying update 1100 - Delete region custom field');
+    $regionId = civicrm_api3('CustomField', 'getvalue', array(
+      'name' => 'Region',
+      'return' => 'id',
+      'custom_group_id' => "chapter_region",
+    ));
+    civicrm_api3('CustomField', 'delete', ['id' => $regionId]);
+    return TRUE;
+  }
 
   /**
    * Example: Run an external SQL script.
