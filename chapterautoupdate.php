@@ -193,25 +193,12 @@ function chapterautoupdate_civicrm_post($op, $objectName, $objectId, &$objectRef
     if ($dao->N && $objectRef->contact_id) {
       // Save to custom field for address.
       try {
-        $chapterId = civicrm_api3('CustomField', 'getvalue', array(
-          'name' => 'Chapter',
-          'return' => 'id',
-          'custom_group_id' => "chapter_region",
-        ));
-        civicrm_api3('CustomValue', 'create', array(
-          'entity_id' => $objectRef->contact_id,
-          'custom_' . $chapterId => CRM_Core_DAO::VALUE_SEPARATOR . $chapter . CRM_Core_DAO::VALUE_SEPARATOR,
-        ));
-
-        $regionId = civicrm_api3('CustomField', 'getvalue', array(
-          'name' => 'Service Region',
-          'return' => 'id',
-          'custom_group_id' => "chapter_region",
-        ));
-        civicrm_api3('CustomValue', 'create', array(
-          'entity_id' => $objectRef->contact_id,
-          'custom_' . $regionId => CRM_Core_DAO::VALUE_SEPARATOR . $region . CRM_Core_DAO::VALUE_SEPARATOR,
-        ));
+        $params = [
+          'contact_id' => $objectRef->contact_id,
+          'chapter' => CRM_Core_DAO::VALUE_SEPARATOR . $chapter . CRM_Core_DAO::VALUE_SEPARATOR,
+          'region' => CRM_Core_DAO::VALUE_SEPARATOR . $region . CRM_Core_DAO::VALUE_SEPARATOR
+        ];
+        setCodes($params);
       }
       catch (CiviCRM_API3_Exception $e) {
         $errorMessage = $e->getMessage();
@@ -392,14 +379,17 @@ function getCodes($postalCode) {
 
 function setCodes($params, $existingCodes = []) {
   list($chapterId, $regionId) = getIds();
+  // Check if the chapter and region exist in CiviCRM.
+  $chapters = CRM_Core_OptionGroup:values('chapter_20180619153429', FALSE, FALSE, FALSE, NULL, 'label', FALSE);
+  $regions = CRM_Core_OptionGroup:values('service_region_20190320122604', FALSE, FALSE, FALSE, NULL, 'label', FALSE);
 
-  if (!empty($params['chapter'])) {
+  if (!empty($params['chapter']) && array_search($params['chapter'], $chapters)) {
     civicrm_api3('CustomValue', 'create', array(
       'entity_id' => $params['contact_id'],
       'custom_' . $chapterId => $params['chapter'],
     ));
   }
-  if (!empty($params['region'])) {
+  if (!empty($params['region']) && array_search($params['region'], $regions)) {
     civicrm_api3('CustomValue', 'create', array(
       'entity_id' => $params['contact_id'],
       'custom_' . $regionId => $params['region'],
