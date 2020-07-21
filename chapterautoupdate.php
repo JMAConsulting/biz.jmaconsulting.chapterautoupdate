@@ -195,8 +195,8 @@ function chapterautoupdate_civicrm_post($op, $objectName, $objectId, &$objectRef
       try {
         $params = [
           'contact_id' => $objectRef->contact_id,
-          'chapter' => CRM_Core_DAO::VALUE_SEPARATOR . $chapter . CRM_Core_DAO::VALUE_SEPARATOR,
-          'region' => CRM_Core_DAO::VALUE_SEPARATOR . $region . CRM_Core_DAO::VALUE_SEPARATOR
+          'chapter' => $chapter,
+          'region' => $region
         ];
         setCodes($params);
       }
@@ -274,20 +274,16 @@ function chapterautoupdate_civicrm_postProcess($formName, &$form) {
           ];
           if (!$noChapter) {
             if (empty($submittedChapters)) {
-              $params['chapter'] = CRM_Core_DAO::VALUE_SEPARATOR . $chapter . CRM_Core_DAO::VALUE_SEPARATOR;
+              $params['chapter'] = $chapter;
             }
             else {
               $submittedChapters[] = $chapter;
-              $params['chapter'] = CRM_Core_DAO::VALUE_SEPARATOR . implode(CRM_Core_DAO::VALUE_SEPARATOR, array_unique($submittedChapters)) . CRM_Core_DAO::VALUE_SEPARATOR;
+              $params['chapter'] = implode(',', array_unique($submittedChapters));
             }
           }
           if (!$noRegion) {
             if (empty($submittedRegions)) {
-              $params['region'] = CRM_Core_DAO::VALUE_SEPARATOR . $region . CRM_Core_DAO::VALUE_SEPARATOR;
-            }
-            else {
-              $submittedRegions[] = $region;
-              $params['region'] = CRM_Core_DAO::VALUE_SEPARATOR . implode(CRM_Core_DAO::VALUE_SEPARATOR, array_unique($submittedRegions)) . CRM_Core_DAO::VALUE_SEPARATOR;
+              $params['region'] = $region;
             }
           }
           setCodes($params);
@@ -306,20 +302,16 @@ function chapterautoupdate_civicrm_postProcess($formName, &$form) {
           ];
           if (!$noChapter) {
             if (empty($submittedChapters)) {
-              $params['chapter'] = CRM_Core_DAO::VALUE_SEPARATOR . $chapter . CRM_Core_DAO::VALUE_SEPARATOR;
+              $params['chapter'] = $chapter;
             }
             else {
               $submittedChapters[] = $chapter;
-              $params['chapter'] = CRM_Core_DAO::VALUE_SEPARATOR . implode(CRM_Core_DAO::VALUE_SEPARATOR, array_unique($submittedChapters)) . CRM_Core_DAO::VALUE_SEPARATOR;
+              $params['chapter'] = implode(',', array_unique($submittedChapters));
             }
           }
           if (!$noRegion) {
             if (empty($submittedRegions)) {
-              $params['region'] = CRM_Core_DAO::VALUE_SEPARATOR . $region . CRM_Core_DAO::VALUE_SEPARATOR;
-            }
-            else {
-              $submittedRegions[] = $region;
-              $params['region'] = CRM_Core_DAO::VALUE_SEPARATOR . implode(CRM_Core_DAO::VALUE_SEPARATOR, array_unique($submittedRegions)) . CRM_Core_DAO::VALUE_SEPARATOR;
+              $params['region'] = $region;
             }
           }
           setCodes($params);
@@ -386,7 +378,7 @@ function setCodes($params, $existingCodes = []) {
   if (!empty($params['chapter']) && array_search($params['chapter'], $chapters)) {
     civicrm_api3('CustomValue', 'create', array(
       'entity_id' => $params['contact_id'],
-      'custom_' . $chapterId => $params['chapter'],
+      'custom_' . $chapterId => [$params['chapter']],
     ));
   }
   if (!empty($params['region']) && array_search($params['region'], $regions)) {

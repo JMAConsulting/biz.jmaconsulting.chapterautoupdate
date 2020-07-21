@@ -74,7 +74,7 @@ class CRM_CU_Upgrader extends CRM_CU_Upgrader_Base {
       'return' => 'id',
       'custom_group_id' => "chapter_region",
     ));
-    civicrm_api3('CustomField', 'delete', ['id' => $regionId]);
+    civicrm_api3('CustomField', 'create', ['id' => $regionId, 'is_active' => 0]);
     return TRUE;
   }
 
