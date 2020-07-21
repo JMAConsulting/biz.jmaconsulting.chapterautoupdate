@@ -274,11 +274,11 @@ function chapterautoupdate_civicrm_postProcess($formName, &$form) {
           ];
           if (!$noChapter) {
             if (empty($submittedChapters)) {
-              $params['chapter'] = $chapter;
+              $params['chapter'] = [$chapter];
             }
             else {
               $submittedChapters[] = $chapter;
-              $params['chapter'] = implode(',', array_unique($submittedChapters));
+              $params['chapter'] = array_unique($submittedChapters);
             }
           }
           if (!$noRegion) {
@@ -302,11 +302,11 @@ function chapterautoupdate_civicrm_postProcess($formName, &$form) {
           ];
           if (!$noChapter) {
             if (empty($submittedChapters)) {
-              $params['chapter'] = $chapter;
+              $params['chapter'] = [$chapter];
             }
             else {
               $submittedChapters[] = $chapter;
-              $params['chapter'] = implode(',', array_unique($submittedChapters));
+              $params['chapter'] = array_unique($submittedChapters);
             }
           }
           if (!$noRegion) {
