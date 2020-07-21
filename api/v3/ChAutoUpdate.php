@@ -24,7 +24,7 @@ function _civicrm_api3_ch_auto_update_create_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_ch_auto_update_create($params) {
-  return _civicrm_api3_basic_create(_civicrm_api3_get_BAO(__FUNCTION__), $params, ChAutoUpdate);
+  return _civicrm_api3_basic_create(_civicrm_api3_get_BAO(__FUNCTION__), $params, 'ChAutoUpdate');
 }
 
 /**
@@ -68,6 +68,6 @@ function civicrm_api3_ch_auto_update_get($params) {
       "WHERE c.chapter_60 IS NULL
     ");
   }
-  return _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params, FALSE, ChAutoUpdate);
+  return _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params, FALSE, 'ChAutoUpdate');
 }
 

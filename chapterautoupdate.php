@@ -163,6 +163,15 @@ function chapterautoupdate_civicrm_alterSettingsFolders(&$metaDataFolders = NULL
 }
 
 /**
+ * Implementation of hook_civicrm_entityTypes
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_entityTypes
+ */
+function chapterautoupdate_civicrm_entityTypes(&$entityTypes) {
+  _chapterautoupdate_civix_civicrm_entityTypes($entityTypes);
+}
+
+/**
  * Implementation of hook_civicrm_post
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_post
